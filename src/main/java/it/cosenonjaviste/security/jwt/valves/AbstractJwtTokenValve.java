@@ -38,7 +38,10 @@ public abstract class AbstractJwtTokenValve extends ValveBase {
 
 		if ((constraints == null && !request.getContext().getPreemptiveAuthentication())
 				|| !hasAuthConstraint(constraints)) {
-			this.getNext().invoke(request, response);
+			boolean result = authenticateRequestIfValidJwtToken(request, response);
+			if (!result) {
+				this.getNext().invoke(request, response);
+			}
 		} else {
 			handleAuthentication(request, response);
 		}
@@ -55,6 +58,9 @@ public abstract class AbstractJwtTokenValve extends ValveBase {
 			return false;
 		}
 	}
+
+	protected abstract boolean authenticateRequestIfValidJwtToken(Request request, Response response)
+			throws IOException, ServletException;
 
 	protected abstract void handleAuthentication(Request request, Response response)
 			throws IOException, ServletException;

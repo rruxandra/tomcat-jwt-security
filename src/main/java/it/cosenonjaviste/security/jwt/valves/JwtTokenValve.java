@@ -57,23 +57,40 @@ public abstract class JwtTokenValve extends AbstractJwtTokenValve {
 	protected abstract JwtTokenVerifier createTokenVerifier(String customUserIdClaim, String customRolesClaim);
 
 	@Override
+	protected boolean authenticateRequestIfValidJwtToken(Request request, Response response) throws IOException, ServletException {
+
+		String token = getToken(request);
+		if (token != null) {
+			return verifyJwtToken(request, response, token);
+		}
+		return false;
+	}
+
+	@Override
 	protected void handleAuthentication(Request request, Response response)
 			throws IOException, ServletException {
 
 		String token = getToken(request);
 		if (token != null) {
-			try {
-				JwtAdapter jwt = tokenVerifier.verify(token);
-				authenticateRequest(request, jwt);
-				beforeNext(response, jwt);
-				this.getNext().invoke(request, response);
-			} catch (JWTVerificationException e) {
-				LOG.error(e.getMessage());
-				sendUnauthorizedError(request, response, "Token not valid. Cause: " + e.getMessage());
-			}
+			verifyJwtToken(request, response, token);
 		} else {
 			sendUnauthorizedError(request, response, "Please login first");
 		}
+	}
+
+	private boolean verifyJwtToken(Request request, Response response, String token) throws IOException, ServletException {
+		try {
+			JwtAdapter jwt = tokenVerifier.verify(token);
+			authenticateRequest(request, jwt);
+			beforeNext(response, jwt);
+			this.getNext().invoke(request, response);
+			return true;
+		} catch (JWTVerificationException e) {
+			LOG.error(e.getMessage());
+			sendUnauthorizedError(request, response, "Token not valid. Cause: " + e.getMessage());
+		}
+
+		return false;
 	}
 
 	protected void beforeNext(Response response, JwtAdapter jwt) {

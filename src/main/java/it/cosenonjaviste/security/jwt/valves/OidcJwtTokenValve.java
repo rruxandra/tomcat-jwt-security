@@ -1,6 +1,10 @@
 package it.cosenonjaviste.security.jwt.valves;
 
-import com.auth0.jwk.*;
+import com.auth0.jwk.InvalidPublicKeyException;
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkException;
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.JwkProviderBuilder;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTDecodeException;
@@ -12,13 +16,6 @@ import it.cosenonjaviste.security.jwt.exceptions.ValveInitializationException;
 import it.cosenonjaviste.security.jwt.model.JwtAdapter;
 import it.cosenonjaviste.security.jwt.utils.Preconditions;
 import it.cosenonjaviste.security.jwt.utils.verifiers.JwtTokenVerifier;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.connector.Request;
-import org.apache.catalina.connector.Response;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,6 +27,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.servlet.ServletException;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Response;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
 
 /**
  * OpenId Connect idToken validation based on JWKS uri
@@ -73,6 +76,12 @@ public class OidcJwtTokenValve extends AbstractJwtTokenValve {
             LOG.error(e.getMessage(), e);
             throw new ValveInitializationException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected boolean authenticateRequestIfValidJwtToken(Request request, Response response) {
+        // TODO
+        return false;
     }
 
     @Override
